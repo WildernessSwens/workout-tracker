@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Forty-Seven & Forward</title>
+<style>
+  :root {
+    --cream: #FBF6EE;
+    --card: #FFFFFF;
+    --line: #E4D9C8;
+    --line-light: #EFE6D8;
+    --line-faint: #F4EEE3;
+    --ink: #3A2F26;
+    --muted: #6B5B4D;
+    --faint: #A89580;
+    --accent: #B5651D;
+    --skin: #D4A574;
+    --skin-d: #B8865A;
+    --body: #6B5B4D;
+    --equip: #3A2F26;
+    --bench: #C4A882;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:Georgia,'Times New Roman',serif; background:var(--cream); color:var(--ink); padding:24px 16px 48px; padding-top:max(24px,env(safe-area-inset-top)); padding-bottom:max(48px,env(safe-area-inset-bottom)); }
+  .wrap { max-width:640px; margin:0 auto; }
+  header { margin-bottom:28px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+  .eyebrow { font-family:'Helvetica Neue',Arial,sans-serif; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); margin-bottom:6px; font-weight:600; }
+  h1 { font-size:28px; margin:0 0 6px; font-weight:700; letter-spacing:-.01em; }
+  .subtitle { font-family:'Helvetica Neue',Arial,sans-serif; font-size:14px; color:var(--muted); margin:0; }
+
+  .day-card { background:var(--card); border:1px solid var(--line); border-radius:12px; margin-bottom:12px; overflow:hidden; }
+  .day-header { width:100%; display:flex; justify-content:space-between; align-items:center; background:transparent; border:none; padding:16px 18px; cursor:pointer; text-align:left; font-size:17px; font-weight:700; color:var(--ink); font-family:Georgia,serif; }
+  .day-header .chev { font-family:'Helvetica Neue',Arial,sans-serif; color:var(--muted); font-size:14px; }
+  .exercise-list { padding:0 14px 14px; display:none; flex-direction:column; gap:12px; }
+  .exercise-list.open { display:flex; }
+
+  .ex-card { background:var(--cream); border:1px solid var(--line-light); border-radius:10px; overflow:hidden; }
+  .ex-header { padding:10px 12px 6px; }
+  .ex-name { font-weight:700; font-size:15px; }
+  .ex-target { font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; color:var(--faint); margin-top:2px; }
+  .last-log { font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; color:var(--accent); font-weight:600; margin-top:3px; }
+
+  .ex-frames { display:flex; gap:0; border-top:1px solid var(--line-light); border-bottom:1px solid var(--line-light); background:#F0E8D8; }
+  .ex-frame { flex:1; display:flex; flex-direction:column; align-items:center; padding:8px 4px 4px; }
+  .ex-frame:first-child { border-right:1px solid var(--line-light); }
+  .ex-frame svg { width:100%; max-width:160px; height:110px; display:block; }
+  .frame-label { font-family:'Helvetica Neue',Arial,sans-serif; font-size:10px; color:var(--accent); font-weight:700; letter-spacing:.06em; text-transform:uppercase; margin-top:3px; }
+
+  .ex-body { padding:8px 12px 10px; }
+  .input-row { display:flex; gap:6px; align-items:stretch; }
+  .input-row input { font-family:'Helvetica Neue',Arial,sans-serif; font-size:13px; padding:8px; border-radius:7px; border:1px solid var(--line); background:var(--card); color:var(--ink); }
+  .in-small { width:80px; flex-shrink:0; }
+  .in-wide { flex:1; min-width:0; }
+  .log-btn { flex-shrink:0; width:38px; border:none; border-radius:7px; background:var(--accent); cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--cream); font-size:16px; }
+  .log-btn:active { opacity:.8; }
+
+  .card-footer { margin-top:8px; }
+  .link-btn { font-family:'Helvetica Neue',Arial,sans-serif; font-size:12px; color:var(--muted); background:transparent; border:none; padding:0; cursor:pointer; }
+
+  .history-panel { margin-top:10px; padding-top:10px; border-top:1px solid var(--line-light); display:none; }
+  .history-panel.open { display:block; }
+  .empty-note { font-family:'Helvetica Neue',Arial,sans-serif; font-size:12px; color:var(--faint); padding:10px 0; text-align:center; }
+  .history-list { margin-top:8px; display:flex; flex-direction:column; gap:4px; max-height:160px; overflow-y:auto; }
+  .history-row { display:flex; align-items:center; gap:8px; font-family:'Helvetica Neue',Arial,sans-serif; font-size:12px; padding:4px 0; border-bottom:1px solid var(--line-faint); }
+  .h-date { color:var(--faint); width:70px; flex-shrink:0; }
+  .h-details { flex:1; color:var(--ink); }
+  .h-notes { color:var(--faint); font-style:italic; }
+  .del-btn { background:transparent; border:none; cursor:pointer; padding:2px; color:var(--faint); font-size:14px; line-height:1; }
+
+  .chart-wrap { width:100%; height:140px; margin-bottom:4px; }
+  svg.chart text { font-family:'Helvetica Neue',Arial,sans-serif; font-size:10px; fill:var(--muted); }
+  svg.chart .gridline { stroke:var(--line-light); stroke-width:1; }
+  svg.chart .trend { fill:none; stroke:var(--accent); stroke-width:2; }
+  svg.chart .dot { fill:var(--accent); }
+
+  .toolbar { display:flex; gap:8px; margin-bottom:20px; }
+  .tool-btn { flex:1; font-family:'Helvetica Neue',Arial,sans-serif; font-size:13px; font-weight:600; padding:10px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--muted); cursor:pointer; }
+  .tool-btn:active { background:var(--line-faint); }
+
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--cream); font-family:'Helvetica Neue',Arial,sans-serif; font-size:13px; padding:10px 18px; border-radius:8px; opacity:0; transition:opacity .25s; pointer-events:none; z-index:100; white-space:nowrap; }
+  .toast.show { opacity:1; }
+  footer { margin-top:32px; text-align:center; font-family:'Helvetica Neue',Arial,sans-serif; font-size:11px; color:var(--faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Strength, sustained</div>
+    <h1>Forty-Seven &amp; Forward</h1>
+    <p class="subtitle">A rolling 5-day program. Log it, watch the trend.</p>
+  </header>
+  <div class="toolbar">
+    <button class="tool-btn" id="exportBtn">Export backup</button>
+    <button class="tool-btn" id="importBtn">Import backup</button>
+    <input type="file" id="importFile" accept="application/json" style="display:none">
+  </div>
+  <div id="days"></div>
+  <footer>Data saved in this browser on this device.</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── SVG helpers ──────────────────────────────────────────────────────────────
+// Colors: skin #D4A574, body #6B5B4D, equipment #3A2F26, bench #C4A882
+// Each exercise has start + end SVG
+
+const SVGS = {
+
+// ── DAY 1 ────────────────────────────────────────────────────────────────────
+
+"Dumbbell Bench Press": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- bench -->
+  <rect x="20" y="72" width="120" height="12" rx="4" fill="#C4A882"/>
+  <rect x="26" y="84" width="10" height="22" rx="2" fill="#C4A882"/>
+  <rect x="124" y="84" width="10" height="22" rx="2" fill="#C4A882"/>
+  <!-- torso lying flat -->
+  <rect x="35" y="58" width="80" height="16" rx="7" fill="#6B5B4D"/>
+  <!-- head -->
+  <circle cx="122" cy="63" r="10" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <!-- left arm down at side bent 90deg - dumbbell at chest height -->
+  <line x1="55" y1="62" x2="38" y2="48" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <line x1="38" y1="48" x2="28" y2="62" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <!-- right arm down at side bent 90deg -->
+  <line x1="95" y1="62" x2="112" y2="48" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <line x1="112" y1="48" x2="122" y2="62" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <!-- dumbbells at chest level -->
+  <rect x="16" y="56" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="128" y="56" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="19" y="53" width="5" height="12" rx="1" fill="#3A2F26"/>
+  <rect x="136" y="53" width="5" height="12" rx="1" fill="#3A2F26"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- bench -->
+  <rect x="20" y="72" width="120" height="12" rx="4" fill="#C4A882"/>
+  <rect x="26" y="84" width="10" height="22" rx="2" fill="#C4A882"/>
+  <rect x="124" y="84" width="10" height="22" rx="2" fill="#C4A882"/>
+  <!-- torso -->
+  <rect x="35" y="58" width="80" height="16" rx="7" fill="#6B5B4D"/>
+  <circle cx="122" cy="63" r="10" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <!-- arms extended upward -->
+  <line x1="55" y1="62" x2="48" y2="28" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <line x1="95" y1="62" x2="102" y2="28" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <!-- dumbbells at top -->
+  <rect x="36" y="20" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="108" y="20" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="39" y="17" width="5" height="12" rx="1" fill="#3A2F26"/>
+  <rect x="116" y="17" width="5" height="12" rx="1" fill="#3A2F26"/>
+</svg>`
+},
+
+"Incline Dumbbell Flyes": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- incline bench -->
+  <rect x="15" y="55" width="90" height="12" rx="4" fill="#C4A882" transform="rotate(-30 60 61)"/>
+  <rect x="18" y="82" width="10" height="28" rx="2" fill="#C4A882"/>
+  <rect x="76" y="62" width="10" height="20" rx="2" fill="#C4A882" transform="rotate(-30 81 72)"/>
+  <!-- torso on incline -->
+  <rect x="28" y="38" width="70" height="16" rx="7" fill="#6B5B4D" transform="rotate(-30 63 46)"/>
+  <!-- head at top of incline -->
+  <circle cx="80" cy="26" r="10" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <!-- arms wide open (start) -->
+  <line x1="58" y1="44" x2="22" y2="34" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <line x1="72" y1="40" x2="108" y2="30" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <!-- dumbbells wide -->
+  <rect x="8" y="28" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="110" y="22" width="16" height="6" rx="2" fill="#3A2F26"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- incline bench -->
+  <rect x="15" y="55" width="90" height="12" rx="4" fill="#C4A882" transform="rotate(-30 60 61)"/>
+  <rect x="18" y="82" width="10" height="28" rx="2" fill="#C4A882"/>
+  <rect x="76" y="62" width="10" height="20" rx="2" fill="#C4A882" transform="rotate(-30 81 72)"/>
+  <!-- torso -->
+  <rect x="28" y="38" width="70" height="16" rx="7" fill="#6B5B4D" transform="rotate(-30 63 46)"/>
+  <circle cx="80" cy="26" r="10" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <!-- arms together above chest -->
+  <line x1="58" y1="44" x2="62" y2="18" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <line x1="72" y1="40" x2="68" y2="14" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <!-- dumbbells together at top -->
+  <rect x="56" y="8" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="76" y="8" width="16" height="6" rx="2" fill="#3A2F26"/>
+</svg>`
+},
+
+"Tricep Overhead Extension": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- seated on bench -->
+  <rect x="50" y="80" width="60" height="10" rx="3" fill="#C4A882"/>
+  <rect x="54" y="90" width="10" height="22" rx="2" fill="#C4A882"/>
+  <rect x="96" y="90" width="10" height="22" rx="2" fill="#C4A882"/>
+  <!-- torso upright -->
+  <rect x="66" y="50" width="28" height="32" rx="8" fill="#6B5B4D"/>
+  <!-- head -->
+  <circle cx="80" cy="38" r="12" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <!-- legs -->
+  <line x1="70" y1="82" x2="58" y2="108" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="90" y1="82" x2="102" y2="108" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- upper arms up, forearms bent back (start - dumbbell behind head) -->
+  <line x1="72" y1="55" x2="62" y2="30" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <line x1="88" y1="55" x2="98" y2="30" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <line x1="62" y1="30" x2="68" y2="50" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <line x1="98" y1="30" x2="92" y2="50" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <!-- dumbbell behind head -->
+  <rect x="68" y="49" width="24" height="8" rx="3" fill="#3A2F26"/>
+  <rect x="71" y="44" width="6" height="18" rx="2" fill="#3A2F26"/>
+  <rect x="83" y="44" width="6" height="18" rx="2" fill="#3A2F26"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="50" y="80" width="60" height="10" rx="3" fill="#C4A882"/>
+  <rect x="54" y="90" width="10" height="22" rx="2" fill="#C4A882"/>
+  <rect x="96" y="90" width="10" height="22" rx="2" fill="#C4A882"/>
+  <rect x="66" y="50" width="28" height="32" rx="8" fill="#6B5B4D"/>
+  <circle cx="80" cy="38" r="12" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <line x1="70" y1="82" x2="58" y2="108" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="90" y1="82" x2="102" y2="108" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- arms fully extended overhead -->
+  <line x1="72" y1="55" x2="68" y2="18" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <line x1="88" y1="55" x2="92" y2="18" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <!-- dumbbell overhead -->
+  <rect x="64" y="10" width="32" height="8" rx="3" fill="#3A2F26"/>
+  <rect x="68" y="6" width="6" height="16" rx="2" fill="#3A2F26"/>
+  <rect x="86" y="6" width="6" height="16" rx="2" fill="#3A2F26"/>
+</svg>`
+},
+
+"Bench Dips": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- back bench -->
+  <rect x="8" y="44" width="56" height="10" rx="3" fill="#C4A882"/>
+  <rect x="12" y="54" width="9" height="24" rx="2" fill="#C4A882"/>
+  <rect x="47" y="54" width="9" height="24" rx="2" fill="#C4A882"/>
+  <!-- front bench (feet rest) -->
+  <rect x="96" y="72" width="56" height="10" rx="3" fill="#C4A882"/>
+  <rect x="100" y="82" width="9" height="20" rx="2" fill="#C4A882"/>
+  <rect x="135" y="82" width="9" height="20" rx="2" fill="#C4A882"/>
+  <!-- body at top (start - arms almost straight) -->
+  <circle cx="52" cy="30" r="11" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="42" y="41" width="20" height="28" rx="6" fill="#6B5B4D"/>
+  <!-- arms supporting body on bench -->
+  <line x1="44" y1="48" x2="26" y2="46" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="62" y1="48" x2="66" y2="46" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- legs extended to front bench -->
+  <line x1="48" y1="69" x2="80" y2="72" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="56" y1="69" x2="88" y2="72" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="80" y1="72" x2="108" y2="74" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="88" y1="72" x2="116" y2="74" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- back bench -->
+  <rect x="8" y="44" width="56" height="10" rx="3" fill="#C4A882"/>
+  <rect x="12" y="54" width="9" height="24" rx="2" fill="#C4A882"/>
+  <rect x="47" y="54" width="9" height="24" rx="2" fill="#C4A882"/>
+  <!-- front bench -->
+  <rect x="96" y="72" width="56" height="10" rx="3" fill="#C4A882"/>
+  <rect x="100" y="82" width="9" height="20" rx="2" fill="#C4A882"/>
+  <rect x="135" y="82" width="9" height="20" rx="2" fill="#C4A882"/>
+  <!-- body lowered (end - elbows bent, hips dropped) -->
+  <circle cx="52" cy="52" r="11" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="42" y="63" width="20" height="22" rx="6" fill="#6B5B4D"/>
+  <!-- bent arms on bench -->
+  <line x1="44" y1="70" x2="22" y2="52" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="62" y1="70" x2="70" y2="52" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="22" y1="52" x2="20" y2="46" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="70" y1="52" x2="68" y2="46" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- legs to front bench -->
+  <line x1="48" y1="85" x2="80" y2="80" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="56" y1="85" x2="88" y2="80" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="80" y1="80" x2="110" y2="76" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="88" y1="80" x2="118" y2="76" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+</svg>`
+},
+
+// ── DAY 2 ────────────────────────────────────────────────────────────────────
+
+"Dumbbell/Barbell Rows": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- bench to support hand -->
+  <rect x="8" y="54" width="44" height="10" rx="3" fill="#C4A882"/>
+  <rect x="12" y="64" width="9" height="28" rx="2" fill="#C4A882"/>
+  <rect x="35" y="64" width="9" height="28" rx="2" fill="#C4A882"/>
+  <!-- torso horizontal, hinged forward -->
+  <rect x="30" y="44" width="72" height="16" rx="7" fill="#6B5B4D" transform="rotate(10 66 52)"/>
+  <!-- head -->
+  <circle cx="28" cy="46" r="11" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <!-- supporting arm on bench -->
+  <line x1="34" y1="54" x2="26" y2="64" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- active arm hanging down - dumbbell low (start) -->
+  <line x1="86" y1="52" x2="96" y2="82" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- dumbbell at bottom -->
+  <rect x="88" y="84" width="20" height="7" rx="2" fill="#3A2F26"/>
+  <rect x="91" y="80" width="6" height="15" rx="1.5" fill="#3A2F26"/>
+  <rect x="101" y="80" width="6" height="15" rx="1.5" fill="#3A2F26"/>
+  <!-- back leg -->
+  <line x1="80" y1="60" x2="90" y2="92" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="64" y1="60" x2="54" y2="92" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="8" y="54" width="44" height="10" rx="3" fill="#C4A882"/>
+  <rect x="12" y="64" width="9" height="28" rx="2" fill="#C4A882"/>
+  <rect x="35" y="64" width="9" height="28" rx="2" fill="#C4A882"/>
+  <rect x="30" y="44" width="72" height="16" rx="7" fill="#6B5B4D" transform="rotate(10 66 52)"/>
+  <circle cx="28" cy="46" r="11" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <line x1="34" y1="54" x2="26" y2="64" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- active arm pulled up - elbow high -->
+  <line x1="86" y1="52" x2="100" y2="38" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="100" y1="38" x2="96" y2="54" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- dumbbell at hip -->
+  <rect x="88" y="52" width="20" height="7" rx="2" fill="#3A2F26"/>
+  <rect x="91" y="48" width="6" height="15" rx="1.5" fill="#3A2F26"/>
+  <rect x="101" y="48" width="6" height="15" rx="1.5" fill="#3A2F26"/>
+  <line x1="80" y1="60" x2="90" y2="92" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="64" y1="60" x2="54" y2="92" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+</svg>`
+},
+
+"Dumbbell Pullover": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="20" y="70" width="120" height="12" rx="4" fill="#C4A882"/>
+  <rect x="26" y="82" width="10" height="22" rx="2" fill="#C4A882"/>
+  <rect x="124" y="82" width="10" height="22" rx="2" fill="#C4A882"/>
+  <!-- body lying -->
+  <rect x="35" y="56" width="80" height="16" rx="7" fill="#6B5B4D"/>
+  <circle cx="120" cy="62" r="10" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <!-- arms stretched back overhead (start) -->
+  <line x1="60" y1="60" x2="50" y2="34" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <line x1="74" y1="60" x2="80" y2="34" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <!-- dumbbell overhead/behind -->
+  <rect x="48" y="24" width="36" height="9" rx="3" fill="#3A2F26"/>
+  <rect x="52" y="18" width="7" height="20" rx="2" fill="#3A2F26"/>
+  <rect x="73" y="18" width="7" height="20" rx="2" fill="#3A2F26"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="20" y="70" width="120" height="12" rx="4" fill="#C4A882"/>
+  <rect x="26" y="82" width="10" height="22" rx="2" fill="#C4A882"/>
+  <rect x="124" y="82" width="10" height="22" rx="2" fill="#C4A882"/>
+  <rect x="35" y="56" width="80" height="16" rx="7" fill="#6B5B4D"/>
+  <circle cx="120" cy="62" r="10" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <!-- arms pulled up to above chest (end) -->
+  <line x1="60" y1="60" x2="55" y2="36" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <line x1="74" y1="60" x2="79" y2="36" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <line x1="55" y1="36" x2="67" y2="30" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <line x1="79" y1="36" x2="67" y2="30" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <!-- dumbbell above chest -->
+  <rect x="52" y="20" width="30" height="9" rx="3" fill="#3A2F26"/>
+  <rect x="55" y="14" width="7" height="20" rx="2" fill="#3A2F26"/>
+  <rect x="70" y="14" width="7" height="20" rx="2" fill="#3A2F26"/>
+</svg>`
+},
+
+"Bicep Curls": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- standing figure -->
+  <circle cx="80" cy="18" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="31" width="32" height="36" rx="9" fill="#6B5B4D"/>
+  <!-- legs -->
+  <line x1="72" y1="67" x2="66" y2="105" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <line x1="88" y1="67" x2="94" y2="105" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <!-- arms hanging straight down (start) -->
+  <line x1="66" y1="36" x2="46" y2="72" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="94" y1="36" x2="114" y2="72" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- dumbbells at bottom -->
+  <rect x="34" y="70" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="37" y="65" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="43" y="65" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="110" y="70" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="113" y="65" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="119" y="65" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="80" cy="18" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="31" width="32" height="36" rx="9" fill="#6B5B4D"/>
+  <line x1="72" y1="67" x2="66" y2="105" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <line x1="88" y1="67" x2="94" y2="105" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <!-- arms curled up (end) -->
+  <line x1="66" y1="38" x2="44" y2="52" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="44" y1="52" x2="36" y2="36" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="94" y1="38" x2="116" y2="52" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="116" y1="52" x2="124" y2="36" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- dumbbells at shoulder height -->
+  <rect x="24" y="28" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="27" y="23" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="33" y="23" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="120" y="28" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="123" y="23" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="129" y="23" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+</svg>`
+},
+
+"Hammer Curls": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="80" cy="18" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="31" width="32" height="36" rx="9" fill="#6B5B4D"/>
+  <line x1="72" y1="67" x2="66" y2="105" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <line x1="88" y1="67" x2="94" y2="105" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <line x1="66" y1="36" x2="46" y2="72" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="94" y1="36" x2="114" y2="72" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- dumbbells vertical (hammer grip) -->
+  <rect x="39" y="66" width="6" height="20" rx="2" fill="#3A2F26"/>
+  <rect x="34" y="64" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="34" y="80" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="115" y="66" width="6" height="20" rx="2" fill="#3A2F26"/>
+  <rect x="110" y="64" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="110" y="80" width="16" height="6" rx="2" fill="#3A2F26"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="80" cy="18" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="31" width="32" height="36" rx="9" fill="#6B5B4D"/>
+  <line x1="72" y1="67" x2="66" y2="105" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <line x1="88" y1="67" x2="94" y2="105" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <!-- one arm curled (alternate style shown) -->
+  <line x1="66" y1="38" x2="46" y2="72" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="94" y1="38" x2="116" y2="52" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="116" y1="52" x2="112" y2="34" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- right arm curled with vertical dumbbell -->
+  <rect x="108" y="26" width="6" height="20" rx="2" fill="#3A2F26"/>
+  <rect x="103" y="24" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="103" y="40" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <!-- left arm hanging -->
+  <rect x="39" y="68" width="6" height="20" rx="2" fill="#3A2F26"/>
+  <rect x="34" y="66" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="34" y="82" width="16" height="6" rx="2" fill="#3A2F26"/>
+</svg>`
+},
+
+// ── DAY 3 ────────────────────────────────────────────────────────────────────
+
+"Goblet Squats": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- standing, holding dumbbell at chest -->
+  <circle cx="80" cy="14" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="27" width="32" height="30" rx="9" fill="#6B5B4D"/>
+  <!-- dumbbell held at chest -->
+  <rect x="62" y="36" width="36" height="10" rx="4" fill="#3A2F26"/>
+  <rect x="66" y="30" width="8" height="22" rx="2" fill="#3A2F26"/>
+  <rect x="86" y="30" width="8" height="22" rx="2" fill="#3A2F26"/>
+  <!-- arms holding dumbbell -->
+  <line x1="66" y1="32" x2="58" y2="40" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <line x1="94" y1="32" x2="102" y2="40" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <!-- legs straight (standing) -->
+  <line x1="72" y1="57" x2="66" y2="105" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="88" y1="57" x2="94" y2="105" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- squatted down, knees out, elbows inside knees -->
+  <circle cx="80" cy="30" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="43" width="32" height="22" rx="9" fill="#6B5B4D"/>
+  <!-- dumbbell at chest in squat -->
+  <rect x="62" y="50" width="36" height="10" rx="4" fill="#3A2F26"/>
+  <rect x="66" y="44" width="8" height="22" rx="2" fill="#3A2F26"/>
+  <rect x="86" y="44" width="8" height="22" rx="2" fill="#3A2F26"/>
+  <line x1="66" y1="48" x2="52" y2="56" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <line x1="94" y1="48" x2="108" y2="56" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <!-- thighs out to sides, deep squat -->
+  <line x1="72" y1="65" x2="44" y2="82" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="88" y1="65" x2="116" y2="82" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <!-- lower legs -->
+  <line x1="44" y1="82" x2="48" y2="110" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <line x1="116" y1="82" x2="112" y2="110" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+</svg>`
+},
+
+"Romanian Deadlift": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- standing upright holding dumbbells -->
+  <circle cx="80" cy="14" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="27" width="32" height="34" rx="9" fill="#6B5B4D"/>
+  <!-- legs straight -->
+  <line x1="72" y1="61" x2="66" y2="105" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="88" y1="61" x2="94" y2="105" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <!-- arms straight down, dumbbells at thigh -->
+  <line x1="66" y1="32" x2="50" y2="60" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="94" y1="32" x2="110" y2="60" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <rect x="38" y="58" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="41" y="53" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="47" y="53" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="106" y="58" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="109" y="53" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="115" y="53" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- hinged forward at hip, flat back, slight knee bend -->
+  <circle cx="46" cy="30" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <!-- torso horizontal -->
+  <rect x="44" y="36" width="72" height="16" rx="7" fill="#6B5B4D" transform="rotate(15 80 44)"/>
+  <!-- legs with slight bend -->
+  <line x1="82" y1="56" x2="80" y2="90" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="94" y1="54" x2="98" y2="88" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="80" y1="90" x2="74" y2="110" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <line x1="98" y1="88" x2="104" y2="108" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <!-- arms straight down, dumbbells at shin level -->
+  <line x1="52" y1="42" x2="46" y2="72" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="64" y1="46" x2="70" y2="74" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <rect x="34" y="70" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="37" y="65" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="43" y="65" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="60" y="72" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="63" y="67" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="69" y="67" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+</svg>`
+},
+
+"Bulgarian Split Squats": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- rear bench -->
+  <rect x="98" y="56" width="54" height="10" rx="3" fill="#C4A882"/>
+  <rect x="102" y="66" width="9" height="30" rx="2" fill="#C4A882"/>
+  <rect x="135" y="66" width="9" height="30" rx="2" fill="#C4A882"/>
+  <!-- standing figure, upright -->
+  <circle cx="66" cy="14" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="52" y="27" width="28" height="32" rx="8" fill="#6B5B4D"/>
+  <!-- front leg straight down -->
+  <line x1="62" y1="59" x2="56" y2="100" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <!-- rear leg extended back, foot on bench -->
+  <line x1="70" y1="59" x2="100" y2="56" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="100" y1="56" x2="110" y2="58" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <!-- dumbbells at sides -->
+  <line x1="54" y1="32" x2="38" y2="62" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <line x1="78" y1="32" x2="94" y2="62" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <rect x="26" y="60" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="82" y="60" width="16" height="6" rx="2" fill="#3A2F26"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- rear bench -->
+  <rect x="98" y="56" width="54" height="10" rx="3" fill="#C4A882"/>
+  <rect x="102" y="66" width="9" height="30" rx="2" fill="#C4A882"/>
+  <rect x="135" y="66" width="9" height="30" rx="2" fill="#C4A882"/>
+  <!-- figure dropped down, front knee bent deeply -->
+  <circle cx="66" cy="28" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="52" y="41" width="28" height="28" rx="8" fill="#6B5B4D"/>
+  <!-- front thigh near horizontal, knee forward -->
+  <line x1="60" y1="69" x2="50" y2="96" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="50" y1="96" x2="40" y2="110" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <!-- rear leg bent, foot still on bench -->
+  <line x1="70" y1="69" x2="96" y2="60" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="96" y1="60" x2="108" y2="58" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <!-- dumbbells at sides -->
+  <line x1="54" y1="46" x2="38" y2="70" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <line x1="78" y1="46" x2="94" y2="70" stroke="#D4A574" stroke-width="7" stroke-linecap="round"/>
+  <rect x="26" y="68" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="82" y="68" width="16" height="6" rx="2" fill="#3A2F26"/>
+</svg>`
+},
+
+"Standing Calf Raises": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="80" cy="14" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="27" width="32" height="34" rx="9" fill="#6B5B4D"/>
+  <!-- arms with dumbbells at sides -->
+  <line x1="66" y1="32" x2="50" y2="60" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="94" y1="32" x2="110" y2="60" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <rect x="38" y="57" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="106" y="57" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <!-- legs straight, flat footed (start) -->
+  <line x1="72" y1="61" x2="66" y2="95" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="88" y1="61" x2="94" y2="95" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <!-- feet flat on ground -->
+  <line x1="58" y1="104" x2="74" y2="98" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="86" y1="98" x2="102" y2="104" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- ground line -->
+  <line x1="30" y1="108" x2="130" y2="108" stroke="#C4A882" stroke-width="2"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- up on toes -->
+  <circle cx="80" cy="10" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="23" width="32" height="34" rx="9" fill="#6B5B4D"/>
+  <line x1="66" y1="28" x2="50" y2="56" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="94" y1="28" x2="110" y2="56" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <rect x="38" y="53" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="106" y="53" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <!-- legs slightly shorter (raised on toes) -->
+  <line x1="72" y1="57" x2="66" y2="88" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="88" y1="57" x2="94" y2="88" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <!-- feet raised, heel up, on ball of foot -->
+  <line x1="60" y1="96" x2="72" y2="90" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="88" y1="90" x2="100" y2="96" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="60" y1="96" x2="60" y2="108" stroke="#D4A574" stroke-width="6" stroke-linecap="round"/>
+  <line x1="100" y1="96" x2="100" y2="108" stroke="#D4A574" stroke-width="6" stroke-linecap="round"/>
+  <line x1="30" y1="108" x2="130" y2="108" stroke="#C4A882" stroke-width="2"/>
+</svg>`
+},
+
+// ── DAY 4 ────────────────────────────────────────────────────────────────────
+
+"Seated Shoulder Press": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="46" y="78" width="68" height="12" rx="4" fill="#C4A882"/>
+  <rect x="50" y="90" width="10" height="22" rx="2" fill="#C4A882"/>
+  <rect x="100" y="90" width="10" height="22" rx="2" fill="#C4A882"/>
+  <circle cx="80" cy="26" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="39" width="32" height="40" rx="9" fill="#6B5B4D"/>
+  <line x1="72" y1="79" x2="62" y2="106" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <line x1="88" y1="79" x2="98" y2="106" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <!-- arms bent at shoulder height, elbows out - dumbbells at ear level (start) -->
+  <line x1="66" y1="46" x2="36" y2="52" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="94" y1="46" x2="124" y2="52" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="36" y1="52" x2="34" y2="38" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="124" y1="52" x2="126" y2="38" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <rect x="22" y="30" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="25" y="24" width="5" height="18" rx="1.5" fill="#3A2F26"/>
+  <rect x="122" y="30" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="130" y="24" width="5" height="18" rx="1.5" fill="#3A2F26"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="46" y="78" width="68" height="12" rx="4" fill="#C4A882"/>
+  <rect x="50" y="90" width="10" height="22" rx="2" fill="#C4A882"/>
+  <rect x="100" y="90" width="10" height="22" rx="2" fill="#C4A882"/>
+  <circle cx="80" cy="26" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="39" width="32" height="40" rx="9" fill="#6B5B4D"/>
+  <line x1="72" y1="79" x2="62" y2="106" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <line x1="88" y1="79" x2="98" y2="106" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <!-- arms fully extended overhead (end) -->
+  <line x1="66" y1="44" x2="56" y2="14" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="94" y1="44" x2="104" y2="14" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <rect x="44" y="6" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="47" y="0" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="100" y="6" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="108" y="0" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+</svg>`
+},
+
+"Lateral Raises": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="80" cy="14" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="27" width="32" height="34" rx="9" fill="#6B5B4D"/>
+  <line x1="72" y1="61" x2="66" y2="105" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="88" y1="61" x2="94" y2="105" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <!-- arms hanging at sides (start) -->
+  <line x1="66" y1="34" x2="50" y2="58" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="94" y1="34" x2="110" y2="58" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <rect x="36" y="55" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="39" y="50" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="45" y="50" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="108" y="55" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="111" y="50" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="117" y="50" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="80" cy="14" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="27" width="32" height="34" rx="9" fill="#6B5B4D"/>
+  <line x1="72" y1="61" x2="66" y2="105" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="88" y1="61" x2="94" y2="105" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <!-- arms raised to shoulder height, parallel to floor (end) -->
+  <line x1="66" y1="38" x2="18" y2="38" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="94" y1="38" x2="142" y2="38" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <rect x="6" y="33" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="9" y="28" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="138" y="33" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="141" y="28" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+</svg>`
+},
+
+"Front Raises": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="80" cy="14" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="27" width="32" height="34" rx="9" fill="#6B5B4D"/>
+  <line x1="72" y1="61" x2="66" y2="105" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="88" y1="61" x2="94" y2="105" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <!-- both arms hanging down in front (start) -->
+  <line x1="68" y1="34" x2="60" y2="62" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="92" y1="34" x2="100" y2="62" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <rect x="48" y="60" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="51" y="55" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="57" y="55" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="96" y="60" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="99" y="55" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="105" y="55" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="80" cy="14" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="27" width="32" height="34" rx="9" fill="#6B5B4D"/>
+  <line x1="72" y1="61" x2="66" y2="105" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="88" y1="61" x2="94" y2="105" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <!-- one arm raised to shoulder height in front (alternate shown) -->
+  <line x1="68" y1="34" x2="60" y2="62" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <rect x="48" y="60" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <!-- right arm raised forward to shoulder height -->
+  <line x1="92" y1="34" x2="106" y2="14" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <rect x="98" y="6" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="101" y="0" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+  <rect x="107" y="0" width="5" height="16" rx="1.5" fill="#3A2F26"/>
+</svg>`
+},
+
+"Dead Bugs": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- floor -->
+  <line x1="8" y1="96" x2="152" y2="96" stroke="#C4A882" stroke-width="2"/>
+  <!-- lying on back -->
+  <circle cx="28" cy="80" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="36" y="72" width="72" height="16" rx="7" fill="#6B5B4D"/>
+  <!-- both arms pointing straight up (tabletop start) -->
+  <line x1="54" y1="72" x2="50" y2="44" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="86" y1="72" x2="90" y2="44" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- both knees up at 90 degrees (tabletop legs) -->
+  <line x1="96" y1="76" x2="118" y2="64" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <line x1="118" y1="64" x2="126" y2="90" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <line x1="108" y1="80" x2="130" y2="68" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <line x1="130" y1="68" x2="138" y2="92" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <line x1="8" y1="96" x2="152" y2="96" stroke="#C4A882" stroke-width="2"/>
+  <circle cx="28" cy="80" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="36" y="72" width="72" height="16" rx="7" fill="#6B5B4D"/>
+  <!-- opposite arm and leg extended (right arm up-left, left leg out-right) -->
+  <!-- right arm extended overhead -->
+  <line x1="54" y1="72" x2="36" y2="40" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- left arm stays up -->
+  <line x1="86" y1="72" x2="90" y2="44" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- left knee still up (tucked) -->
+  <line x1="96" y1="76" x2="118" y2="64" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <line x1="118" y1="64" x2="126" y2="90" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <!-- right leg extended straight out -->
+  <line x1="108" y1="80" x2="148" y2="82" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+</svg>`
+},
+
+"Bird Dogs": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- floor -->
+  <line x1="8" y1="102" x2="152" y2="102" stroke="#C4A882" stroke-width="2"/>
+  <!-- on all fours, neutral spine -->
+  <circle cx="130" cy="38" r="12" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="52" y="44" width="72" height="16" rx="7" fill="#6B5B4D"/>
+  <!-- all four limbs supporting (start) -->
+  <!-- front arms -->
+  <line x1="56" y1="52" x2="38" y2="72" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="68" y1="52" x2="52" y2="72" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="38" y1="72" x2="36" y2="100" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="52" y1="72" x2="50" y2="100" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- back legs -->
+  <line x1="100" y1="52" x2="104" y2="76" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="116" y1="52" x2="120" y2="76" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="104" y1="76" x2="100" y2="100" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="120" y1="76" x2="116" y2="100" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <line x1="8" y1="102" x2="152" y2="102" stroke="#C4A882" stroke-width="2"/>
+  <circle cx="130" cy="38" r="12" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="52" y="44" width="72" height="16" rx="7" fill="#6B5B4D"/>
+  <!-- left arm extended forward -->
+  <line x1="56" y1="50" x2="22" y2="44" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <!-- right arm on ground supporting -->
+  <line x1="68" y1="52" x2="52" y2="72" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="52" y1="72" x2="50" y2="100" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- right leg extended back -->
+  <line x1="116" y1="52" x2="148" y2="50" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <!-- left leg on ground supporting -->
+  <line x1="100" y1="52" x2="104" y2="76" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="104" y1="76" x2="100" y2="100" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+</svg>`
+},
+
+// ── DAY 5 ────────────────────────────────────────────────────────────────────
+
+"Dumbbell Deadlift": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- hinged, dumbbells near floor -->
+  <circle cx="52" cy="26" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="50" y="36" width="62" height="16" rx="7" fill="#6B5B4D" transform="rotate(20 81 44)"/>
+  <!-- legs bent, hip hinge -->
+  <line x1="90" y1="52" x2="86" y2="88" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="104" y1="48" x2="108" y2="84" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="86" y1="88" x2="78" y2="108" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <line x1="108" y1="84" x2="114" y2="104" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <!-- arms straight down, dumbbells at shin level -->
+  <line x1="58" y1="38" x2="52" y2="74" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="68" y1="44" x2="74" y2="78" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <rect x="38" y="72" width="18" height="7" rx="2" fill="#3A2F26"/>
+  <rect x="42" y="66" width="6" height="18" rx="1.5" fill="#3A2F26"/>
+  <rect x="50" y="66" width="6" height="18" rx="1.5" fill="#3A2F26"/>
+  <rect x="62" y="76" width="18" height="7" rx="2" fill="#3A2F26"/>
+  <rect x="66" y="70" width="6" height="18" rx="1.5" fill="#3A2F26"/>
+  <rect x="74" y="70" width="6" height="18" rx="1.5" fill="#3A2F26"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- standing tall, dumbbells at sides -->
+  <circle cx="80" cy="14" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="27" width="32" height="34" rx="9" fill="#6B5B4D"/>
+  <line x1="72" y1="61" x2="66" y2="100" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="88" y1="61" x2="94" y2="100" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="66" y1="32" x2="50" y2="60" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="94" y1="32" x2="110" y2="60" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <rect x="36" y="57" width="18" height="7" rx="2" fill="#3A2F26"/>
+  <rect x="40" y="51" width="6" height="18" rx="1.5" fill="#3A2F26"/>
+  <rect x="48" y="51" width="6" height="18" rx="1.5" fill="#3A2F26"/>
+  <rect x="106" y="57" width="18" height="7" rx="2" fill="#3A2F26"/>
+  <rect x="110" y="51" width="6" height="18" rx="1.5" fill="#3A2F26"/>
+  <rect x="118" y="51" width="6" height="18" rx="1.5" fill="#3A2F26"/>
+</svg>`
+},
+
+"Push Press": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- slight knee dip (start) -->
+  <circle cx="80" cy="16" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="29" width="32" height="34" rx="9" fill="#6B5B4D"/>
+  <!-- knees slightly bent -->
+  <line x1="72" y1="63" x2="64" y2="90" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="88" y1="63" x2="96" y2="90" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="64" y1="90" x2="58" y2="108" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <line x1="96" y1="90" x2="102" y2="108" stroke="#D4A574" stroke-width="10" stroke-linecap="round"/>
+  <!-- dumbbells at shoulder level (start) -->
+  <line x1="66" y1="36" x2="38" y2="42" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="94" y1="36" x2="122" y2="42" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="38" y1="42" x2="36" y2="28" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="122" y1="42" x2="124" y2="28" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <rect x="24" y="20" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="27" y="14" width="5" height="18" rx="1.5" fill="#3A2F26"/>
+  <rect x="120" y="20" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="128" y="14" width="5" height="18" rx="1.5" fill="#3A2F26"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- legs fully extended, arms locked out overhead -->
+  <circle cx="80" cy="10" r="13" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="64" y="23" width="32" height="36" rx="9" fill="#6B5B4D"/>
+  <line x1="72" y1="59" x2="66" y2="100" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <line x1="88" y1="59" x2="94" y2="100" stroke="#D4A574" stroke-width="11" stroke-linecap="round"/>
+  <!-- arms fully overhead -->
+  <line x1="66" y1="30" x2="54" y2="6" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="94" y1="30" x2="106" y2="6" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <rect x="42" y="0" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="45" y="-4" width="5" height="14" rx="1.5" fill="#3A2F26"/>
+  <rect x="104" y="0" width="16" height="6" rx="2" fill="#3A2F26"/>
+  <rect x="112" y="-4" width="5" height="14" rx="1.5" fill="#3A2F26"/>
+</svg>`
+},
+
+"Renegade Rows": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- plank position on dumbbells -->
+  <circle cx="136" cy="32" r="12" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="42" y="38" width="90" height="16" rx="7" fill="#6B5B4D"/>
+  <!-- both hands on dumbbells, plank -->
+  <line x1="46" y1="48" x2="28" y2="66" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="58" y1="48" x2="46" y2="66" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <!-- dumbbells on floor left -->
+  <rect x="16" y="62" width="24" height="9" rx="3" fill="#3A2F26"/>
+  <rect x="20" y="56" width="7" height="20" rx="2" fill="#3A2F26"/>
+  <rect x="29" y="56" width="7" height="20" rx="2" fill="#3A2F26"/>
+  <!-- right hand on dumbbell -->
+  <line x1="116" y1="46" x2="122" y2="66" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="128" y1="46" x2="134" y2="66" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <rect x="112" y="62" width="24" height="9" rx="3" fill="#3A2F26"/>
+  <rect x="116" y="56" width="7" height="20" rx="2" fill="#3A2F26"/>
+  <rect x="125" y="56" width="7" height="20" rx="2" fill="#3A2F26"/>
+  <!-- feet/toes -->
+  <line x1="42" y1="52" x2="18" y2="90" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="54" y1="54" x2="30" y2="92" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- plank, one arm rowing up -->
+  <circle cx="136" cy="32" r="12" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="42" y="38" width="90" height="16" rx="7" fill="#6B5B4D"/>
+  <!-- left hand on floor dumbbell -->
+  <line x1="46" y1="48" x2="28" y2="66" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="58" y1="48" x2="46" y2="66" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <rect x="16" y="62" width="24" height="9" rx="3" fill="#3A2F26"/>
+  <rect x="20" y="56" width="7" height="20" rx="2" fill="#3A2F26"/>
+  <rect x="29" y="56" width="7" height="20" rx="2" fill="#3A2F26"/>
+  <!-- right arm rowing up (elbow high) -->
+  <line x1="116" y1="46" x2="128" y2="26" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="128" y1="26" x2="136" y2="44" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <!-- dumbbell pulled to hip -->
+  <rect x="118" y="38" width="24" height="9" rx="3" fill="#3A2F26"/>
+  <rect x="122" y="32" width="7" height="20" rx="2" fill="#3A2F26"/>
+  <rect x="131" y="32" width="7" height="20" rx="2" fill="#3A2F26"/>
+  <line x1="42" y1="52" x2="18" y2="90" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="54" y1="54" x2="30" y2="92" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+</svg>`
+},
+
+"Plank": {
+start: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- floor -->
+  <line x1="8" y1="100" x2="152" y2="100" stroke="#C4A882" stroke-width="2"/>
+  <!-- plank on forearms - this IS the exercise, show with straight body -->
+  <circle cx="130" cy="44" r="12" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="36" y="50" width="90" height="16" rx="7" fill="#6B5B4D"/>
+  <!-- forearms on ground -->
+  <line x1="40" y1="60" x2="30" y2="76" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="52" y1="60" x2="44" y2="76" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <!-- forearm flat -->
+  <line x1="30" y1="76" x2="18" y2="78" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <line x1="44" y1="76" x2="32" y2="78" stroke="#D4A574" stroke-width="8" stroke-linecap="round"/>
+  <!-- toes -->
+  <line x1="36" y1="64" x2="12" y2="96" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="48" y1="64" x2="24" y2="96" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <!-- body alignment arrow -->
+  <line x1="60" y1="42" x2="120" y2="42" stroke="#B5651D" stroke-width="1.5" stroke-dasharray="4,3"/>
+</svg>`,
+end: `<svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+  <!-- high plank (hands) variation -->
+  <line x1="8" y1="100" x2="152" y2="100" stroke="#C4A882" stroke-width="2"/>
+  <circle cx="130" cy="34" r="12" fill="#D4A574" stroke="#B8865A" stroke-width="1.5"/>
+  <rect x="36" y="40" width="90" height="16" rx="7" fill="#6B5B4D"/>
+  <!-- hands on ground, arms straight -->
+  <line x1="40" y1="50" x2="22" y2="76" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="52" y1="50" x2="36" y2="76" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <!-- toes -->
+  <line x1="36" y1="54" x2="12" y2="96" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <line x1="48" y1="54" x2="24" y2="96" stroke="#D4A574" stroke-width="9" stroke-linecap="round"/>
+  <!-- straight body line -->
+  <line x1="60" y1="32" x2="120" y2="32" stroke="#B5651D" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <!-- label -->
+  <text x="70" y="26" font-size="9" fill="#B5651D" font-family="sans-serif" font-weight="bold">hold &amp; breathe</text>
+</svg>`
+}
+
+};
+
+// ── Program ───────────────────────────────────────────────────────────────────
+const PROGRAM = {
+  "Day 1 — Chest & Triceps": [
+    { name: "Dumbbell Bench Press", target: "3×8-10" },
+    { name: "Incline Dumbbell Flyes", target: "2×10-12" },
+    { name: "Tricep Overhead Extension", target: "3×10-12" },
+    { name: "Bench Dips", target: "2×10-15" }
+  ],
+  "Day 2 — Back & Biceps": [
+    { name: "Dumbbell/Barbell Rows", target: "3×8-10" },
+    { name: "Dumbbell Pullover", target: "2×10-12" },
+    { name: "Bicep Curls", target: "3×10-12" },
+    { name: "Hammer Curls", target: "2×10-12" }
+  ],
+  "Day 3 — Legs": [
+    { name: "Goblet Squats", target: "3×10-12" },
+    { name: "Romanian Deadlift", target: "2×10" },
+    { name: "Bulgarian Split Squats", target: "2×8-10/leg" },
+    { name: "Standing Calf Raises", target: "3×15" }
+  ],
+  "Day 4 — Shoulders & Core": [
+    { name: "Seated Shoulder Press", target: "3×8-10" },
+    { name: "Lateral Raises", target: "3×12-15" },
+    { name: "Front Raises", target: "2×10-12" },
+    { name: "Dead Bugs", target: "3×10/side" },
+    { name: "Bird Dogs", target: "2×10/side" }
+  ],
+  "Day 5 — Full Body / Functional": [
+    { name: "Dumbbell Deadlift", target: "3×8" },
+    { name: "Push Press", target: "3×8" },
+    { name: "Renegade Rows", target: "2×8/side" },
+    { name: "Plank", target: "3×30-45s" }
+  ]
+};
+
+// ── Storage ───────────────────────────────────────────────────────────────────
+const KEY = "workout-logs-v1";
+function loadLogs() { try { const r=localStorage.getItem(KEY); return r?JSON.parse(r):{};} catch(e){return{};}}
+function saveLogs(l) { try{localStorage.setItem(KEY,JSON.stringify(l));return true;}catch(e){showToast("Couldn't save");return false;}}
+let logs = loadLogs();
+function todayStr(){return new Date().toISOString().slice(0,10);}
+function xid(n){return n.replace(/[^a-zA-Z0-9]/g,"_");}
+function showToast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800);}
+function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML;}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render(){
+  const el=document.getElementById("days"); el.innerHTML="";
+  Object.entries(PROGRAM).forEach(([day,exercises],di)=>{
+    const dc=document.createElement("div"); dc.className="day-card";
+    const h=document.createElement("button"); h.className="day-header";
+    h.innerHTML=`<span>${day}</span><span class="chev">${di===0?"▾":"▸"}</span>`;
+    const list=document.createElement("div"); list.className="exercise-list"+(di===0?" open":"");
+    h.addEventListener("click",()=>{const o=list.classList.toggle("open");h.querySelector(".chev").textContent=o?"▾":"▸";});
+    exercises.forEach(e=>list.appendChild(buildCard(e)));
+    dc.appendChild(h); dc.appendChild(list); el.appendChild(dc);
+  });
+}
+
+function buildCard({name,target}){
+  const id=xid(name); const history=logs[name]||[]; const last=history[history.length-1];
+  const lastText=last?`Last: ${last.weight?last.weight+"lb ":""}${last.reps?"× "+last.reps:""}`.trim():"";
+  const frames=SVGS[name]||{start:"",end:""};
+  const card=document.createElement("div"); card.className="ex-card";
+  card.innerHTML=`
+    <div class="ex-header">
+      <div class="ex-name">${esc(name)}</div>
+      <div class="ex-target">${esc(target)}</div>
+      ${last?`<div class="last-log">${esc(lastText)}</div>`:""}
+    </div>
+    <div class="ex-frames">
+      <div class="ex-frame">${frames.start}<div class="frame-label">Start</div></div>
+      <div class="ex-frame">${frames.end}<div class="frame-label">End</div></div>
+    </div>
+    <div class="ex-body">
+      <div class="input-row">
+        <input class="in-small" type="number" inputmode="decimal" placeholder="Weight (lb)" id="w_${id}">
+        <input class="in-small" type="text" inputmode="numeric" placeholder="Reps" id="r_${id}">
+        <input class="in-wide" type="text" placeholder="Notes" id="n_${id}">
+        <button class="log-btn" id="log_${id}" aria-label="Log">✓</button>
+      </div>
+      <div class="card-footer">
+        <button class="link-btn" id="hist_${id}">History (${history.length})</button>
+      </div>
+      <div class="history-panel" id="panel_${id}"></div>
+    </div>`;
+
+  card.querySelector(`#log_${id}`).addEventListener("click",()=>{
+    const w=card.querySelector(`#w_${id}`).value.trim();
+    const r=card.querySelector(`#r_${id}`).value.trim();
+    const n=card.querySelector(`#n_${id}`).value.trim();
+    if(!w&&!r&&!n)return;
+    logs[name]=logs[name]||[];
+    logs[name].push({date:todayStr(),weight:w,reps:r,notes:n});
+    if(saveLogs(logs)){showToast("Logged ✓");render();}
+  });
+  const hb=card.querySelector(`#hist_${id}`); const panel=card.querySelector(`#panel_${id}`);
+  hb.addEventListener("click",()=>{const o=panel.classList.toggle("open");hb.textContent=o?"Hide history":`History (${(logs[name]||[]).length})`;if(o)renderHistory(panel,name);});
+  return card;
+}
+
+function renderHistory(panel,name){
+  const history=logs[name]||[]; panel.innerHTML="";
+  const weighted=history.filter(e=>e.weight!==""&&!isNaN(parseFloat(e.weight)));
+  if(weighted.length>=2)panel.appendChild(buildChart(weighted));
+  else{const n=document.createElement("div");n.className="empty-note";n.textContent="Log weight twice to see a trend.";panel.appendChild(n);}
+  if(!history.length){const n=document.createElement("div");n.className="empty-note";n.textContent="No entries yet.";panel.appendChild(n);return;}
+  const list=document.createElement("div");list.className="history-list";
+  history.slice().reverse().forEach((e,i)=>{
+    const ri=history.length-1-i; const row=document.createElement("div"); row.className="history-row";
+    const det=`${e.weight?e.weight+"lb ":""}${e.reps?"× "+e.reps:""}`.trim();
+    row.innerHTML=`<span class="h-date">${e.date}</span><span class="h-details">${esc(det)}${e.notes?` <span class="h-notes">— ${esc(e.notes)}</span>`:""}</span><button class="del-btn">✕</button>`;
+    row.querySelector(".del-btn").addEventListener("click",()=>{logs[name].splice(ri,1);saveLogs(logs);render();});
+    list.appendChild(row);
+  });
+  panel.appendChild(list);
+}
+
+function buildChart(entries){
+  const W=300,H=140,P={t:10,r:10,b:24,l:32};
+  const vals=entries.map(e=>parseFloat(e.weight));
+  const mn=Math.min(...vals),mx=Math.max(...vals),rng=mx-mn||1;
+  const yMin=mn-rng*.15,yMax=mx+rng*.15,iW=W-P.l-P.r,iH=H-P.t-P.b;
+  const pts=entries.map((e,i)=>({x:P.l+i*(entries.length>1?iW/(entries.length-1):0),y:P.t+iH-((parseFloat(e.weight)-yMin)/(yMax-yMin))*iH,label:e.date.slice(5)}));
+  const path=pts.map((p,i)=>(i===0?"M":"L")+p.x.toFixed(1)+" "+p.y.toFixed(1)).join(" ");
+  let grid="",dots="",labels="";
+  for(let i=0;i<=2;i++){const y=P.t+(iH/2)*i;grid+=`<line class="gridline" x1="${P.l}" y1="${y}" x2="${W-P.r}" y2="${y}"/>`;}
+  const skip=Math.max(1,Math.ceil(pts.length/5));
+  pts.forEach((p,i)=>{dots+=`<circle class="dot" cx="${p.x}" cy="${p.y}" r="3"/>`;if(i%skip===0||i===pts.length-1)labels+=`<text x="${p.x}" y="${H-6}" text-anchor="middle">${p.label}</text>`;});
+  const wrap=document.createElement("div");wrap.className="chart-wrap";
+  wrap.innerHTML=`<svg class="chart" viewBox="0 0 ${W} ${H}" width="100%" height="${H}">${grid}<path class="trend" d="${path}"/>${dots}${labels}</svg>`;
+  return wrap;
+}
+
+// ── Export / Import ───────────────────────────────────────────────────────────
+document.getElementById("exportBtn").addEventListener("click",()=>{
+  const blob=new Blob([JSON.stringify(logs,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download=`workout-backup-${todayStr()}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  showToast("Backup downloaded");
+});
+document.getElementById("importBtn").addEventListener("click",()=>document.getElementById("importFile").click());
+document.getElementById("importFile").addEventListener("change",e=>{
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{try{logs=JSON.parse(ev.target.result);saveLogs(logs);render();showToast("Backup restored");}catch(err){showToast("Couldn't read file");}};
+  reader.readAsText(file);e.target.value="";
+});
+
+render();
+</script>
+</body>
+</html>
