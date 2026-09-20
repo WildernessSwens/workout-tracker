@@ -1023,7 +1023,7 @@ function renderHistory(panel,name){
   history.slice().reverse().forEach((e,i)=>{
     const ri=history.length-1-i; const row=document.createElement("div"); row.className="history-row";
     const det=`${e.weight?e.weight+"lb ":""}${e.reps?"× "+e.reps:""}`.trim();
-    row.innerHTML=`<span class="h-date">${e.date}</span><span class="h-details">${esc(det)}${e.notes?` <span class="h-notes">— ${esc(e.notes)}</span>`:""}</span><button class="del-btn">✕</button>`;
+    row.innerHTML=`<span class="h-date">${esc(e.date)}</span><span class="h-details">${esc(det)}${e.notes?` <span class="h-notes">— ${esc(e.notes)}</span>`:""}</span><button class="del-btn">✕</button>`;
     row.querySelector(".del-btn").addEventListener("click",()=>{logs[name].splice(ri,1);saveLogs(logs);render();});
     list.appendChild(row);
   });
@@ -1040,7 +1040,7 @@ function buildChart(entries){
   let grid="",dots="",labels="";
   for(let i=0;i<=2;i++){const y=P.t+(iH/2)*i;grid+=`<line class="gridline" x1="${P.l}" y1="${y}" x2="${W-P.r}" y2="${y}"/>`;}
   const skip=Math.max(1,Math.ceil(pts.length/5));
-  pts.forEach((p,i)=>{dots+=`<circle class="dot" cx="${p.x}" cy="${p.y}" r="3"/>`;if(i%skip===0||i===pts.length-1)labels+=`<text x="${p.x}" y="${H-6}" text-anchor="middle">${p.label}</text>`;});
+  pts.forEach((p,i)=>{dots+=`<circle class="dot" cx="${p.x}" cy="${p.y}" r="3"/>`;if(i%skip===0||i===pts.length-1)labels+=`<text x="${p.x}" y="${H-6}" text-anchor="middle">${esc(p.label)}</text>`;});
   const wrap=document.createElement("div");wrap.className="chart-wrap";
   wrap.innerHTML=`<svg class="chart" viewBox="0 0 ${W} ${H}" width="100%" height="${H}">${grid}<path class="trend" d="${path}"/>${dots}${labels}</svg>`;
   return wrap;
@@ -1057,7 +1057,7 @@ document.getElementById("importBtn").addEventListener("click",()=>document.getEl
 document.getElementById("importFile").addEventListener("change",e=>{
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=ev=>{try{logs=JSON.parse(ev.target.result);saveLogs(logs);render();showToast("Backup restored");}catch(err){showToast("Couldn't read file");}};
+  reader.onload=ev=>{try{const parsed=JSON.parse(ev.target.result);if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))throw new Error("bad format");logs=parsed;saveLogs(logs);render();showToast("Backup restored");}catch(err){showToast("Couldn't read file");}};
   reader.readAsText(file);e.target.value="";
 });
 
